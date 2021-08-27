@@ -1,84 +1,70 @@
 const skynetNode = require("@skynetlabs/skynet-nodejs");
+const skynetJS = require("skynet-js");
 
 const chalk = require("chalk");
 
-// // Full site build
-// const buildPath = "./build"
-// const correctSkylink = "sia://AACnKwvDh6j3VwNmvnRGpxq-tQ2_JLcXZV2FFXwCp2HREA";
+const server = "https://dev3.siasky.dev"
 
 
-// small-build site (should have black background)
-const buildPath = "./small-build"
-const correctSkylink = "sia://AABal7NyB-nDPKWDqjkiZepv6L3L0RmJyWLAmi6i7O5uqA";
-// //windows: 
-// const correctSkylink = "sia://AADLuAmVvoY6p36OgpGchacyoY_l585_bvbKEtbcUmes7w";
-
-const servers = [
-  'https://eu-ger-1.siasky.net',
-  'https://eu-ger-2.siasky.net',
-  'https://eu-ger-5.siasky.net',
-  'https://eu-ger-7.siasky.net',
-  'https://eu-ger-8.siasky.net',
-  'https://eu-ger-9.siasky.net',
-  'https://eu-ger-10.siasky.net',
-  'https://eu-ger-11.siasky.net',
-  'https://eu-ger-12.siasky.net',
-  'https://eu-pol-4.siasky.net',
-  'https://eu-fin-4.siasky.net',
-  'https://eu-fin-5.siasky.net',
-  'https://eu-fin-6.siasky.net',
-  'https://eu-fin-7.siasky.net',
-  'https://eu-fin-8.siasky.net',
-  'https://eu-fin-9.siasky.net',
-  'https://eu-fin-10.siasky.net',
-]
-
-
-const pushDirectoryToSkynet = async (path, nodeClient) => {
+const pushDirectoryToSkynet = async (path, nodeClient, server, routeRules) => {
   try {
-    const response = await nodeClient.uploadDirectory(path);
+    const {tryFiles, errorPages} = routeRules;
+    console.log("tryFiles", tryFiles);
+    console.log("errorPages:", errorPages);
+    const response = await nodeClient.uploadDirectory(path, {portalUrl: server, tryFiles, errorPages});
     return response;
   } catch (e) {
+    console.error(e);
     return {};
   }
 };
 
-const deployAll = async () => {
-
-  let iterations = 3;
-  let successes = 0;
-  for (let index = 0; index < (servers.length * iterations); index++) {
-    let choice = Math.floor(index / iterations);
-    successes += await deploy(servers[choice]);
-  }
-
-    const failures = (iterations * servers.length) - successes;
-
-    console.log(` ✅ successes: ${chalk.green(successes)}`);
-    console.log(` ❌ failures: ${chalk.red(failures)}`);
-
+const routingPresets = {
+  gatsby: {
+    errorPages: { 404: "/404.html"},
+    tryFiles:  ["index.html", "/index.html"]
+  },
+  gatsbyStatic: {
+    errorPages: { 404: "/404.html"},
+    tryFiles:  ["index.html"]
+  },
+  reactRouter: {
+    tryFiles:  ["index.html", "/index.html"]
+  },
+  traditional: {
+    errorPages: { 404: "/404.html"},
+    tryFiles:  ["index.html"]
+  },
 }
 
-const deploy = async (server) => {
+
+const deploy = async (server, dir, routeRules) => {
+
 // Create clients for upload and resolver skylink.
   let nodeClient = new skynetNode.SkynetClient(server);
+  let client = new skynetJS.SkynetClient(server);
 
-  console.log(`🛰  ${server}...`);
-  let skylink = await pushDirectoryToSkynet(buildPath, nodeClient);
+  let path = "./builds/" + dir;
+
+  console.log(`🛰 Uploading ${path} to ${server}...`);
+
+  let skylink = await pushDirectoryToSkynet(path, nodeClient, server, routeRules);
+  let skylinkUrl = await client.getSkylinkUrl(skylink, {subdomain: true});
 
   if (!skylink) {
     console.log(`📡 App deployment failed`);
     return false;
-  }
-
-  if ( skylink !== correctSkylink) {
-    console.log(` ❌ App deployed flattened skylink: ${chalk.red(skylink)}`);
-    return 0;
-
   } else {
-    console.log(` ✅ App deployed correct skylink: ${chalk.green(skylink)}`);
-    return 1;
+    console.log(`✅ App ${dir} deployed to:`);
+    console.log(`skylink: ${chalk.magenta(skylink)}`);
+    console.log(`url: ${chalk.green(skylinkUrl)}`);
+    console.log(`metadata: ${chalk.cyan( server + "/skynet/metadata/" + skylink.slice(6, skylink.length))}`);
   }
+
 };
 
-deployAll();
+const dir = process.argv[2];
+const presetName = process.argv[3] || 'traditional';
+const routeRules = routingPresets[presetName];
+
+deploy(server, dir, routeRules);

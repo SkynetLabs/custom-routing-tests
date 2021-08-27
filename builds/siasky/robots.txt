@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Sitemap: https://siasky.net/sitemap/sitemap-index.xml
+Host: https://siasky.net

@@ -5,5 +5,8 @@
   "devDependencies": {
     "@skynetlabs/skynet-nodejs": "^2.1.0",
     "chalk": "^4.1.2"
+  },
+  "dependencies": {
+    "skynet-js": "^4.0.13-beta"
   }
 }

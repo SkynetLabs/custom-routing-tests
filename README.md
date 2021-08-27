@@ -1,17 +1,22 @@
-# flatten-tester
+# custom-routing-tester
 
-Simple tester for 2 build dirs deploying across various Skynet servers.
-
-> Note: "Correct Skylinks" might change depending on platform. Adjust accordingly for your test. Small build has black background when uploaded correctly.
+Simple tester for trying out custom routes and presets.
 
 ## Running
 
 1. Clone repo and `cd` into dir.
 2. Run `yarn`
-3. Run `yarn skynet`
+3. Run `yarn skynet [folderInBuilds] [routingPreset]`
 
-> Uncomment values for "build" or "small-build".
+> This uses a `skynet-nodejs` build from the main branch. You can clone it in another repo and run `yarn` then `yarn link`. Then, back this this directory, run `yarn link @skynetlabs/skynet-nodejs` to run your local build of the library. Hopefully this isn't needed with next release.
 
-### Additional Work
+Currently there are 3 folders in `builds` as sample projects to deploy:
+- `react-router` - a simple react-router tutorial taken from web
+- `siasky` - Skynet Labs homepage build
+- `small-build` - minimal html only site
 
-If necessary, could pull live server list. Servers were those in LB night of 8/23/2021.
+Currently there are 3 `routingPreset` options:
+- `traditional` (Default if arg not supplied.)
+- `gatsby`
+- `gatsbyStatic`
+- `reactRouter`
