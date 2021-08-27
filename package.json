@@ -3,7 +3,7 @@
     "skynet": "node ./scripts/skynet.js"
   },
   "devDependencies": {
-    "@skynetlabs/skynet-nodejs": "^2.1.0",
+    "@skynetlabs/skynet-nodejs": "^2.2.0",
     "chalk": "^4.1.2"
   },
   "dependencies": {
